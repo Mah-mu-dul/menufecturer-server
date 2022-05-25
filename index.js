@@ -19,30 +19,33 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const serviceCollection = client.db('electro').collection('services')
-    const userCollection = client.db('electro').collection('user')
+    const serviceCollection = client.db("electro").collection("services");
+    const userCollection = client.db("electro").collection("user");
 
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const cursor = serviceCollection.find(query);
+      const services = await cursor.toArray();
+      res.send(services);
+    });
+    app.get("/user/:email", async (req, res) => {
+      const e = req.params.email
+      const query = { email: e};
+      const cursor = userCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
-    app.get('/services', async(req, res) =>{
-        const query = {}
-        const cursor = serviceCollection.find(query)
-        const services = await cursor.toArray()
-        res.send(services)
-    }) 
-
-    app.post('/services', async (req, res) =>{
-        const service = req.body
-        console.log(service);
-        const result = await serviceCollection.insertOne(service) 
-        res.send(result)
-    })
-    app.post('/users', async (req, res) =>{
-        const user = req.body
-        const result = await userCollection.insertOne(user) 
-        res.send(result)
-    })
-
-
+    app.post("/services", async (req, res) => {
+      const service = req.body;
+      const result = await serviceCollection.insertOne(service);
+      res.send(result);
+    });
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
   } finally {
   }
 }

@@ -4,6 +4,8 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const ObjectId = require("mongodb").ObjectID;
+
 
 app.use(cors());
 app.use(express.json());
@@ -21,6 +23,7 @@ async function run() {
     await client.connect();
     const serviceCollection = client.db("electro").collection("services");
     const userCollection = client.db("electro").collection("user");
+    const orderCollection = client.db("electro").collection("order");
 
     app.get("/services", async (req, res) => {
       const query = {};
@@ -28,10 +31,51 @@ async function run() {
       const services = await cursor.toArray();
       res.send(services);
     });
+    // find all user to manage admin 
+    app.get("/users", async (req, res) => {
+      const query = {};
+      const cursor = userCollection.find(query);
+      const users = await cursor.toArray();
+      res.send(users);
+    });
+    // find all orders to manage order 
+    app.get("/orders", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const orders= await cursor.toArray();
+      res.send(orders);
+    });
+// update role to make admin
+       app.put("/users/:id", async (req, res) => {
+         const id = req.params.id;
+         const updatedItem = req.body;
+         const filter = { _id: ObjectId(id) };
+         const options = { upsert: true };
+         const updatedDoc = {
+           $set: {
+             role: updatedItem.role,
+           },
+         };
+         const result = await userCollection.updateOne(
+           filter,
+           updatedDoc,
+           options
+         );
+         res.send(result);
+       });
+
     app.get("/user/:email", async (req, res) => {
       const e = req.params.email
       const query = { email: e};
       const cursor = userCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // find data from orders my email to  show my orders
+    app.get("/order/:email", async (req, res) => {
+      const e = req.params.email
+      const query = { email: e};
+      const cursor = orderCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -46,6 +90,20 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+
+// find one by id
+     app.get("/services/:id", async (req, res) => {
+       const id = req.params.id;
+       const query = { _id: ObjectId(id) };
+       const result = await serviceCollection.findOne(query);
+
+       res.send(result);
+     });
   } finally {
   }
 }

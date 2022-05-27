@@ -1,12 +1,10 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion,ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-
-
 
 app.use(cors());
 app.use(express.json());
@@ -19,23 +17,23 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
- const verifyJWT = (req, res, next) => {
-   const authHeader = req.headers.authorization;
-   if (!authHeader) {
-     return res
-       .status(401)
-       .send({ messege: "un authorozied access dont find header" });
-   }
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(401)
+      .send({ messege: "un authorozied access dont find header" });
+  }
 
-   const token = authHeader?.split(" ")[1];
-   jwt.verify(token, process.env.ACCESS_TOKEN_SECREATE, (err, decoded) => {
-     if (err) {
-       return res.status(403).send({ messege: "access forbidden " });
-     }
-     req.decoded = decoded;
-   });
-   next();
- };
+  const token = authHeader?.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECREATE, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ messege: "access forbidden " });
+    }
+    req.decoded = decoded;
+  });
+  next();
+};
 
 async function run() {
   try {
@@ -52,99 +50,109 @@ async function run() {
       const services = await cursor.toArray();
       res.send(services);
     });
-    // find all reviewes  
+    // find all reviewes
     app.get("/reviews", async (req, res) => {
       const query = {};
       const cursor = reviewCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
-    // find all user to manage admin 
+    // find all user to manage admin
     app.get("/users", async (req, res) => {
       const query = {};
       const cursor = userCollection.find(query);
       const users = await cursor.toArray();
       res.send(users);
     });
-    // find all orders to manage order 
+    // find all orders to manage order
     app.get("/orders", async (req, res) => {
       const query = {};
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
       res.send(orders);
-      console.log('try to getting all orders');
+      console.log("try to getting all orders");
     });
-// update role to make admin   add jwt 
-       app.put("/users/:id", async (req, res) => {
-         const id = req.params.id;
-         const updatedItem = req.body;
-         const filter = { _id: ObjectId(id) };
-         const options = { upsert: true };
-         const updatedDoc = {
-           $set: {
-             role: updatedItem.role,
-           },
-         };
-         const result = await userCollection.updateOne(
-           filter,
-           updatedDoc,
-           options
-         );
-         const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
-         res.send({result, token});
-       });
-      //  update order status for admin to manage orders
-       app.put("/order/:id", async (req, res) => {
-         const id = req.params.id;
-         console.log('hitted to update ordar status', id, req.body);
-         const updatedItem = req.body;
-         const filter = { _id: ObjectId(id) };
-         const options = { upsert: true };
-         const updatedDoc = {
-           $set: {
-             status: updatedItem.status,
-           },
-         };
-         const result = await orderCollection.updateOne(
-           filter, 
-           updatedDoc,
-           options
-         );
+    // update role to make admin   add jwt
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedItem = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          role: updatedItem.role,
+        },
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {
+        expiresIn: "24h",
+      });
+      res.send({ result, token });
+    });
+    //  update order status for admin to manage orders
+    app.put("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log("hitted to update ordar status", id, req.body);
+      const updatedItem = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          status: updatedItem.status,
+        },
+      };
+      const result = await orderCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
 
+      //  delete product from manage product modal
+      app.delete("/service/:id", async (req, res) => {
+        const id = req.params.id;
+        console.log(id);
+        const query = { _id: ObjectId(id) };
+        console.log(query);
+        const result = await orderCollection.deleteOne(query);
+        res.send(result);
+      });
 
-        //  const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
-         res.send({result}); //add Token after the result
-       });
+      //  const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
+      res.send({ result }); //add Token after the result
+    });
 
     app.get("/user/:email", async (req, res) => {
-      const e = req.params.email
-      const query = { email: e};
+      const e = req.params.email;
+      const query = { email: e };
       const cursor = userCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
     // find data from orders my email to  show my orders
     app.get("/orders/:email", async (req, res) => {
-      const e = req.params.email
-      const query = { email: e};
+      const e = req.params.email;
+      const query = { email: e };
       const cursor = orderCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    // send user to database 
-    app.put('/user/:email',async(req,res)=>{
-      const email =req.params.email
-      const user  = req.body 
-      const filter = {email:email}
-      const option = {upsert:true}
+    // send user to database
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const option = { upsert: true };
       const updateDoc = {
-        $set:user,
-      }
-      const result = await userCollection.updateOne(filter, updateDoc, option)
-      res.send(result) 
-
-    })
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, option);
+      res.send(result);
+    });
 
     app.post("/services", async (req, res) => {
       const service = req.body;
@@ -161,21 +169,21 @@ async function run() {
       const result = await orderCollection.insertOne(order);
       res.send(result);
     });
-    // to post a review 
+    // to post a review
     app.post("/review", async (req, res) => {
       const fullReview = req.body;
       const result = await reviewCollection.insertOne(fullReview);
       res.send(result);
     });
 
-// find one by id
-     app.get("/services/:id", async (req, res) => {
-       const id = req.params.id;
-       const query = { _id: ObjectId(id) };
-       const result = await serviceCollection.findOne(query);
+    // find one by id
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await serviceCollection.findOne(query);
 
-       res.send(result);
-     });
+      res.send(result);
+    });
   } finally {
   }
 }

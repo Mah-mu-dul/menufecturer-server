@@ -88,6 +88,7 @@ async function run() {
       //  update order status for admin to manage orders
        app.put("/order/:id", async (req, res) => {
          const id = req.params.id;
+         console.log('hitted to update ordar status', id);
          const updatedItem = req.body;
          const filter = { _id: ObjectId(id) };
          const options = { upsert: true };
@@ -113,7 +114,7 @@ async function run() {
       res.send(result);
     });
     // find data from orders my email to  show my orders
-    app.get("/order/:email", async (req, res) => {
+    app.get("/orders/:email", async (req, res) => {
       const e = req.params.email
       const query = { email: e};
       const cursor = orderCollection.find(query);

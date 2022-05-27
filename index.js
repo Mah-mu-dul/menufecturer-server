@@ -85,6 +85,25 @@ async function run() {
          const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
          res.send({result, token});
        });
+      //  update order status for admin to manage orders
+       app.put("/order/:id", async (req, res) => {
+         const id = req.params.id;
+         const updatedItem = req.body;
+         const filter = { _id: ObjectId(id) };
+         const options = { upsert: true };
+         const updatedDoc = {
+           $set: {
+             status: updatedItem.status,
+           },
+         };
+         const result = await orderCollection.updateOne(
+           filter,
+           updatedDoc,
+           options
+         );
+        //  const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
+         res.send({result}); //add Token after the result
+       });
 
     app.get("/user/:email", async (req, res) => {
       const e = req.params.email

@@ -20,6 +20,24 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+ const verifyJWT = (req, res, next) => {
+   const authHeader = req.headers.authorization;
+   if (!authHeader) {
+     return res
+       .status(401)
+       .send({ messege: "un authorozied access dont find header" });
+   }
+
+   const token = authHeader?.split(" ")[1];
+   jwt.verify(token, process.env.ACCESS_TOKEN_SECREATE, (err, decoded) => {
+     if (err) {
+       return res.status(403).send({ messege: "access forbidden " });
+     }
+     req.decoded = decoded;
+   });
+   next();
+ };
+
 async function run() {
   try {
     await client.connect();
@@ -44,11 +62,12 @@ async function run() {
     app.get("/orders", async (req, res) => {
       const query = {};
       const cursor = orderCollection.find(query);
-      const orders= await cursor.toArray();
+      const orders = await cursor.toArray();
       res.send(orders);
+      console.log('try to getting all orders');
     });
 // update role to make admin
-       app.put("/users/:id", async (req, res) => {
+       app.put("/users/:id",verifyJWT, async (req, res) => {
          const id = req.params.id;
          const updatedItem = req.body;
          const filter = { _id: ObjectId(id) };
@@ -82,6 +101,20 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    // send user to database 
+    app.put('/user/:email',async(req,res)=>{
+      const email =req.params.email
+      const user  = req.body 
+      const filter = {email:email}
+      const option = {upsert:true}
+      const updateDoc = {
+        $set:user,
+      }
+      const result = await userCollection.updateOne(filter, updateDoc, option)
+      res.send(result) 
+
+    })
 
     app.post("/services", async (req, res) => {
       const service = req.body;

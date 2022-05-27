@@ -44,6 +44,7 @@ async function run() {
     const serviceCollection = client.db("electro").collection("services");
     const userCollection = client.db("electro").collection("user");
     const orderCollection = client.db("electro").collection("order");
+    const profileCollection = client.db("electro").collection("profiles");
 
     app.get("/services", async (req, res) => {
       const query = {};

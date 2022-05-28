@@ -26,7 +26,8 @@ const verifyJWT = (req, res, next) => {
   }
 
   const token = authHeader?.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECREATE, (err, decoded) => {
+  console.log(token);
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
     if (err) {
       return res.status(403).send({ messege: "access forbidden " });
     }
@@ -70,7 +71,6 @@ async function run() {
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
       res.send(orders);
-      console.log("try to getting all orders");
     });
     // update role to make admin   add jwt
     app.put("/users/:id", async (req, res) => {
@@ -96,7 +96,6 @@ async function run() {
     //  update order status for admin to manage orders
     app.put("/order/:id", async (req, res) => {
       const id = req.params.id;
-      console.log("hitted to update ordar status", id, req.body);
       const updatedItem = req.body;
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
@@ -118,15 +117,15 @@ async function run() {
     //  delete product from manage product modal
     app.delete("/services/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: ObjectId(id) };
 
-      const result = await serviceCollection.deleteOne(query)
+      const result = await serviceCollection.deleteOne(query);
       res.send(result);
     });
-
+    // get user according to email
     app.get("/user/:email", async (req, res) => {
       const e = req.params.email;
+      console.log(e);
       const query = { email: e };
       const cursor = userCollection.find(query);
       const result = await cursor.toArray();
@@ -141,7 +140,7 @@ async function run() {
       res.send(result);
     });
     // find data from orders my email to  show my orders
-    app.get("/orders/:email", async (req, res) => {
+    app.get("/orders/:email",verifyJWT, async (req, res) => {
       const e = req.params.email;
       const query = { email: e };
       const cursor = orderCollection.find(query);
@@ -191,6 +190,14 @@ async function run() {
       const result = await serviceCollection.findOne(query);
 
       res.send(result);
+    });
+
+    // auth (jwt)
+    app.post("/login", async (req, res) => {
+      console.log('inside of login ');
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECREATE);
+      res.send({ token });
     });
   } finally {
   }

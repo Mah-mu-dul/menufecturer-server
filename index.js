@@ -111,18 +111,18 @@ async function run() {
         options
       );
 
-      //  delete product from manage product modal
-      app.delete("/service/:id", async (req, res) => {
-        const id = req.params.id;
-        console.log(id);
-        const query = { _id: ObjectId(id) };
-        console.log(query);
-        const result = await orderCollection.deleteOne(query);
-        res.send(result);
-      });
-
       //  const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {expiresIn: '24h'});
       res.send({ result }); //add Token after the result
+    });
+
+    //  delete product from manage product modal
+    app.delete("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+
+      const result = await serviceCollection.deleteOne(query)
+      res.send(result);
     });
 
     app.get("/user/:email", async (req, res) => {

@@ -132,6 +132,14 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // get profile according to email
+    app.get("/profile/:email", async (req, res) => {
+      const e = req.params.email;
+      const query = { email: e };
+      const cursor = profileCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // find data from orders my email to  show my orders
     app.get("/orders/:email", async (req, res) => {
       const e = req.params.email;

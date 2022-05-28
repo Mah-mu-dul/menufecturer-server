@@ -66,7 +66,7 @@ async function run() {
       res.send(users);
     });
     // find all orders to manage order
-    app.get("/orders", async (req, res) => {
+    app.get("/orders",verifyJWT, async (req, res) => {
       const query = {};
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
@@ -134,6 +134,7 @@ async function run() {
     // get profile according to email
     app.get("/profile/:email", async (req, res) => {
       const e = req.params.email;
+      console.log(e);
       const query = { email: e };
       const cursor = profileCollection.find(query);
       const result = await cursor.toArray();
@@ -152,12 +153,29 @@ async function run() {
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
+      console.log(user);
       const filter = { email: email };
       const option = { upsert: true };
       const updateDoc = {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, option);
+      res.send(result);
+    });
+    // put user to db from signup 
+    app.put("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const option = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await profileCollection.updateOne(
+        filter,
+        updateDoc,
+        option
+      );
       res.send(result);
     });
 
@@ -196,8 +214,9 @@ async function run() {
     app.post("/login", async (req, res) => {
       console.log('inside of login ');
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECREATE);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN);
       res.send({ token });
+      console.log(token);
     });
   } finally {
   }

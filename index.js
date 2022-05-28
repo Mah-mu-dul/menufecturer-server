@@ -26,7 +26,6 @@ const verifyJWT = (req, res, next) => {
   }
 
   const token = authHeader?.split(" ")[1];
-  console.log(token);
   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
     if (err) {
       return res.status(403).send({ messege: "access forbidden " });
@@ -66,7 +65,7 @@ async function run() {
       res.send(users);
     });
     // find all orders to manage order
-    app.get("/orders",verifyJWT, async (req, res) => {
+    app.get("/orders", async (req, res) => {
       const query = {};
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
@@ -149,19 +148,27 @@ async function run() {
       res.send(result);
     });
 
-    // send user to database
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
+    // // send user to database
+    app.put("/users", async (req, res) => {
+      const email = false
       const user = req.body;
       console.log(user);
-      const filter = { email: email };
-      const option = { upsert: true };
-      const updateDoc = {
-        $set: user,
-      };
-      const result = await userCollection.updateOne(filter, updateDoc, option);
-      res.send(result);
+      if(email==56){
+        const filter = { email: email };
+        const option = { upsert: true };
+        const updateDoc = {
+          $set: user,
+        };
+        const result = await userCollection.updateOne(
+          filter,
+          updateDoc,
+          option
+        );
+        res.send(user);
+      }
     });
+
+
     // put user to db from signup 
     app.put("/profile/:email", async (req, res) => {
       const email = req.params.email;
@@ -184,10 +191,22 @@ async function run() {
       const result = await serviceCollection.insertOne(service);
       res.send(result);
     });
-    app.post("/users", async (req, res) => {
-      const user = req.body;
-      const result = await userCollection.insertOne(user);
-      res.send(result);
+    app.post("/userss", async (req, res) => {
+      const info = req.body;
+      console.log(info);
+
+      const x = {
+        lol:'lol'
+      }
+      
+        if(x = 0){
+          const result = await userCollection.insertOne(x);
+          res.send(result);
+        }
+        else{
+          res.send({messege:'from back end'})
+        }
+      
     });
     app.post("/order", async (req, res) => {
       const order = req.body;

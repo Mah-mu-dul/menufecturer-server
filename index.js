@@ -74,7 +74,6 @@ async function run() {
     // find orders according to payment status ( for admin )
     app.get("/payfilter/:status", async (req, res) => {
       const status = req.params.status;
-      console.log(status);
       const query = { status: status };
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();

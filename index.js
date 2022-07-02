@@ -71,6 +71,15 @@ async function run() {
       const orders = await cursor.toArray();
       res.send(orders);
     });
+    // find orders according to payment status ( for admin )
+    app.get("/payfilter/:status", async (req, res) => {
+      const status = req.params.status;
+      console.log(status);
+      const query = { status: status };
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
     // update role to make admin   add jwt
     app.put("/users/:id", async (req, res) => {
       const id = req.params.id;
@@ -124,7 +133,6 @@ async function run() {
     // get user according to email
     app.get("/user/:email", async (req, res) => {
       const e = req.params.email;
-      console.log(e);
       const query = { email: e };
       const cursor = userCollection.find(query);
       const result = await cursor.toArray();
@@ -140,20 +148,25 @@ async function run() {
       res.send(result);
     });
     // find data from orders my email to  show my orders
-    app.get("/orders/:email",verifyJWT, async (req, res) => {
+    app.get("/orders/:email", async (req, res) => {
       const e = req.params.email;
+
+      console.log(e);
       const query = { email: e };
       const cursor = orderCollection.find(query);
       const result = await cursor.toArray();
-      res.send(result);
+      const token = jwt.sign({ email: e }, process.env.ACCESS_TOKEN, {
+        expiresIn: "24h",
+      });
+      res.send({ result });
     });
 
     // // send user to database
     app.put("/users", async (req, res) => {
-      const email = false
+      const email = false;
       const user = req.body;
       console.log(user);
-      if(email==56){
+      if (email == 56) {
         const filter = { email: email };
         const option = { upsert: true };
         const updateDoc = {
@@ -168,8 +181,7 @@ async function run() {
       }
     });
 
-
-    // put user to db from signup 
+    // put user to db from signup
     app.put("/profile/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -196,17 +208,15 @@ async function run() {
       console.log(info);
 
       const x = {
-        lol:'lol'
+        lol: "lol",
+      };
+
+      if ((x = 0)) {
+        const result = await userCollection.insertOne(x);
+        res.send(result);
+      } else {
+        res.send({ messege: "from back end" });
       }
-      
-        if(x = 0){
-          const result = await userCollection.insertOne(x);
-          res.send(result);
-        }
-        else{
-          res.send({messege:'from back end'})
-        }
-      
     });
     app.post("/order", async (req, res) => {
       const order = req.body;
@@ -231,7 +241,7 @@ async function run() {
 
     // auth (jwt)
     app.post("/login", async (req, res) => {
-      console.log('inside of login ');
+      console.log("inside of login ");
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN);
       res.send({ token });

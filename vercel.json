@@ -1,15 +1,19 @@
 {
-    "version":2,
-    "builds":[
-        {
-            "src":"./index.js",
-            "use":"@vercel/node"
-        }
-    ],
-    "routes":[
-        {
-            "src":"/(.*)",
-            "dest":"/"
-        }
-    ]
+  "build": {
+    "command": "npm run build"
+  },
+  "routes": [
+    {
+      "src": "/api/*",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb-uri"
+  },
+  "functions": {
+    "hello": {
+      "handler": "api/hello.js"
+    }
+  }
 }
